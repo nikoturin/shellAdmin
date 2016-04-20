@@ -1,0 +1,205 @@
+/*###################################################
+#Name Process: ctc_gOOgleC
+#Autor: Ramses Hernandez
+#Company:NikOzy
+#Date dd/mm/aaaa: 18/03/2014
+#Objective: This process get total numbers conversions
+#From Google Analytics
+#Msg: If you have a better idea let us know please
+###################################################*/
+
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include <curl/curl.h>
+#include <libxml/xpath.h>
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+
+#define  XMLSIZE    5550124
+#define  HOUR             6
+#define  HOURVALUE        7
+#define  MINUTE           8
+#define  MINUTEVALUE      9
+#define  COMPLETEALL     12
+#define  LIMITPIVOTE     13
+
+
+//I don't like to use global variable but... Ok
+
+char    hourGralBook[1000][1000];
+char    minuteGralBook[1000][1000];
+char    valueGralBook[1000][1000];
+int     contGral;
+
+static void print_element_names(xmlNode * a_node)
+{
+    xmlNode  *cur_node = NULL;
+    char     data[100][100];
+    int      cont=0;
+    for (cur_node = a_node; cur_node; cur_node = cur_node->next)
+    {   
+      if (cur_node->type == XML_ELEMENT_NODE)        
+      {          
+            
+          xmlAttr *attr=cur_node->properties;          
+          while(attr)
+          {
+                            strcpy(data[cont],attr->children->content);
+                            cont++;
+                            attr=attr->next;
+          }
+          if(cont==LIMITPIVOTE)
+          {
+                strcpy(hourGralBook[contGral],data[HOURVALUE]);
+                strcpy(minuteGralBook[contGral],data[MINUTEVALUE]);
+                strcpy(valueGralBook[contGral],data[COMPLETEALL]);
+                contGral++;
+          }
+      }
+        print_element_names(cur_node->children);
+    }
+}
+
+int get_conversion()
+{
+  int i=0;
+  int sumGralBook=0;
+  int lastMinute=0;
+  int lastHour=0;
+  int out=1;
+  int hourTam=0;
+
+  lastHour=atoi(hourGralBook[0]);
+  lastMinute=atoi(minuteGralBook[0]);
+
+  while(out==1)
+  {
+        if(atoi(hourGralBook[i])==lastHour && atoi(minuteGralBook[i])<=30)
+                sumGralBook=sumGralBook+atoi(valueGralBook[i]);
+        else if(atoi(minuteGralBook[i])>=(59-(30-lastMinute)) && (lastHour-1)==atoi(hourGralBook[i]))
+                sumGralBook=sumGralBook+atoi(valueGralBook[i]);
+        else if(atoi(hourGralBook[i])==lastHour && (atoi(minuteGralBook[i])>=30 || atoi(minuteGralBook[i])<=(lastMinute-30)))
+                sumGralBook=sumGralBook+atoi(valueGralBook[i]);
+        else
+                out=0;
+
+        i++;
+  }
+  return(sumGralBook);
+}
+struct string{
+  char *ptr;
+  size_t len;
+};
+
+
+void init_string(struct string *s)
+{
+  s->len = 0;
+  s->ptr = malloc(s->len+1);
+  if (s->ptr == NULL) {
+    fprintf(stderr, "malloc() failed\n");
+    exit(EXIT_FAILURE);
+  }
+  s->ptr[0] = '\0';
+}
+
+size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s)
+{
+  size_t new_len = s->len + size*nmemb;
+  s->ptr = realloc(s->ptr, new_len+1);
+  if (s->ptr == NULL) {
+    fprintf(stderr, "realloc() failed\n");
+    exit(EXIT_FAILURE);
+  }
+  memcpy(s->ptr+s->len, ptr, size*nmemb);
+  s->ptr[new_len] = '\0';
+  s->len = new_len;
+
+  return size*nmemb;
+}
+
+char *get_answerHTTPS(char *url)
+{
+  time_t   actStart;
+  time_t   actEnd;
+  struct   tm *ts;
+  struct   tm *tsEnd;
+  char     bufUrl[1000];
+  char     bufTimeStart[100];
+  char     bufTimeEnd[100];
+  CURL     *curl;
+  CURLcode res;
+    struct curl_slist *headerlist=NULL;
+
+  actStart=time(NULL);
+  actEnd=time(NULL);
+  ts=localtime(&actStart);
+  tsEnd=localtime(&actEnd);
+  strftime(bufTimeStart,sizeof(bufTimeStart),"%Y-%m-%d",ts);
+  strftime(bufTimeEnd,sizeof(bufTimeEnd),"%Y-%m-%d",tsEnd);
+  headerlist=curl_slist_append(headerlist,"Authorization: GoogleLogin Auth=");
+
+  headerlist=curl_slist_append(headerlist,"GData-Version: 2");
+
+  curl = curl_easy_init();
+
+  if(curl)
+  {
+
+    struct string s;
+    init_string(&s);
+    sprintf(bufUrl,"https://www.google.com/analytics/feeds/data?ids=ga:&start-date=%s&end-date=%s&dimensions=ga:goalCompletionLocation,ga:hour,ga:minute&metrics=ga:goalCompletionsAll&segment=gaid::-9&sort=-ga:hour,-ga:minute&filters=ga:goalCompletionLocation=~%s",bufTimeStart,bufTimeEnd,url);
+
+    curl_easy_setopt(curl, CURLOPT_URL,bufUrl);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+    res=curl_easy_perform(curl);
+
+    if(res != CURLE_OK)
+    {fprintf(stderr, "curl_easy_perform() failed: %s,%d\n",  curl_easy_strerror(res),CURLE_OK);}
+
+    /* always cleanup */
+    curl_easy_cleanup(curl);
+
+    return(s.ptr);
+    }
+
+int main()
+{
+   char         buf[XMLSIZE]={0};
+   char         *tmp;
+   char         *urlSearch[]={"/es/confirmed.html","/es/myflight/confirmation.html","/en/confirmed.html","/en/myflight/confirmation.html"};
+   char         *valueUrlSearch[]={"Confirmed Booking ES","Change Booking Es","Complete Booking EN","Change Booking En"};
+   double       value;
+   int          i=0,j,k;
+   int          tam;
+   xmlDoc       *doc = NULL;
+   xmlNode      *root_element = NULL;
+
+   while(urlSearch[i]!=NULL)
+   {        hourGralBook[1000][1000]=0;        minuteGralBook[1000][1000]=0;        valueGralBook[1000][1000]=0;
+        contGral=0;
+
+        //strcpy(buf,get_answerHTTPS(urlSearch[i]));
+        tam=sizeof(buf);
+        tmp=(char *)malloc(tam);
+        strcpy(tmp,get_answerHTTPS(urlSearch[i]));
+
+        doc=xmlParseMemory(tmp,strlen(tmp));
+        free(tmp);
+        if(doc==NULL)
+           printf("error:could not parse data\n");        
+           
+        root_element=xmlDocGetRootElement(doc);
+        print_element_names(root_element);
+        printf("valueURLSearch:%s ------ %d\n",valueUrlSearch[i],get_conversion());
+
+        xmlFreeDoc(doc);
+        xmlCleanupParser();
+        i++;
+   }
+   return 0;
+}
