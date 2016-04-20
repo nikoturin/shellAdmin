@@ -1,0 +1,155 @@
+#include <stdio.h>
+#include <string.h>
+#include <jansson.h>
+#include <curl/curl.h>
+
+#define  JSONSIZE  100024
+#define  PARAMS    3
+#define  TOKEN     1
+#define  NOTOKEN   0
+#define  VIV       0
+#define  FC        1
+
+struct string{
+  char *ptr;
+  size_t len;
+};
+
+
+void init_string(struct string *s)
+{
+  s->len = 0;
+  s->ptr = malloc(s->len+1);
+  if (s->ptr == NULL) {
+    fprintf(stderr, "malloc() failed\n");
+    exit(EXIT_FAILURE);
+  }
+  s->ptr[0] = '\0';
+}
+
+
+size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s)
+{
+  size_t new_len = s->len + size*nmemb;
+  s->ptr = realloc(s->ptr, new_len+1);
+  if (s->ptr == NULL) {
+    fprintf(stderr, "realloc() failed\n");
+    exit(EXIT_FAILURE);
+  }
+  memcpy(s->ptr+s->len, ptr, size*nmemb);
+  s->ptr[new_len] = '\0';
+  s->len = new_len;
+
+  return size*nmemb;
+}
+
+char *get_answerHTTPS(char *strMetrics,char *URI,int newToken,char *token,int airLine)
+{
+  CURL     *curl;
+  CURLcode  res;
+  char     strURL[1000];
+  int      gaAuth;
+
+  struct curl_slist *headerlist=NULL;
+
+  curl = curl_easy_init();
+
+  if(curl)
+  {
+
+    struct string s;
+    init_string(&s);
+
+    if(newToken==TOKEN)
+    {
+        sprintf(strURL,"%s",URI);
+        if(airLine==VIV)
+        {                curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "client_id=&client_secret=&refresh_token=&grant_type=refresh_token");
+                gaAuth=;
+        }
+        else
+        {                curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "client_id=&client_secret=&refresh_token=&grant_type=refresh_token");
+                gaAuth=;
+       
+        }
+    }
+    else
+        sprintf(strURL,URI,gaAuth,strMetrics,token);
+
+    curl_easy_setopt(curl, CURLOPT_URL, strURL);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+    res=curl_easy_perform(curl);
+    
+        if(res != CURLE_OK)
+    {fprintf(stderr, "curl_easy_perform() failed: %s,%d\n",  curl_easy_strerror(res),CURLE_OK);}
+
+    /* always cleanup */
+    curl_easy_cleanup(curl);
+    return(s.ptr);
+  }
+}
+
+int main(int argc, char *argv[])
+{
+   char         buf[JSONSIZE]={0};
+   char         *URI[]={"https://accounts.google.com/o/oauth2/token","https://www.googleapis.com/analytics/v3/data/realtime?ids=ga:%d&dimensions=rt:minutesAgo&metrics=%s&access_token=%s"};
+   char         *bufData;
+   char         *tokenPass;
+   char         *rtData;
+   //double     value;
+   const char   *country;
+   const char   *countryVisits;
+   int          i,j,k;
+   const char   *key;
+   int          h=0;
+
+   json_t       *root;
+   json_t       *in,*out;
+   json_t       *element,*obj;   json_t       *array;
+   json_t       *value;
+   json_error_t error;
+   size_t       nread;
+   size_t       arraySize;
+   size_t       elementSize;   size_t       index;
+   
+      if(argc!=PARAMS)
+   {
+        fprintf(stderr,"Usage: %s <rt:metrics>\n",argv[0]);
+        return(1);
+   }
+
+   //for(h=0; h<sizeof(URI); h++)
+   while(URI[h]!=NULL)
+   {
+        bufData=(char *)malloc(sizeof(buf));
+        //tokenPass=(char *)malloc(sizeof(buf));
+        if(h==0)
+        {
+                tokenPass=(char *)malloc(sizeof(buf));
+                strcpy(bufData,get_answerHTTPS(argv[1],URI[h],TOKEN,"",atoi(argv[2])));
+                root=json_loads(bufData,0,&error);
+       
+                if(!root)
+                {
+                        printf("Error GA!!\n:%s\nroot",buf);
+                }
+                else
+                {
+                        out = json_object_get(root, "access_token");
+                        sprintf(tokenPass,"%s",json_string_value(out));
+                }
+        }
+        else
+        {
+                strcpy(bufData,get_answerHTTPS(argv[1],URI[h],NOTOKEN,tokenPass,20));
+                printf(bufData);
+                free(tokenPass);
+        }
+        free(bufData);
+        h++;
+    }//End while
+
+  return (0);
+  }
