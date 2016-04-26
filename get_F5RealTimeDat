@@ -1,0 +1,15 @@
+
+###################################################
+#Name Process: F5 Getting RealTime data.
+#Autor: Ramses Hernandez
+#Company:NikOzy
+#Date dd/mm/aaaa: 04/12/2015
+#Objective: Get data from F5 at RealTime
+#is 1 second, great than 1 is a problem
+#Msg: If you have a better idea let us know please
+
+curl -k -u <username>:<password -X GET 
+https://<ip LB>/mgmt/tm/ltm/pool/~Common~Pool_<company>-WS/members/~Common~<WSName>:<port>/stats | jq '.'
+
+I use "jq" cmd to read format json, it is a linux command.
+
