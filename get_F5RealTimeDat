@@ -8,7 +8,7 @@
 #is 1 second, great than 1 is a problem
 #Msg: If you have a better idea let us know please
 
-curl -k -u <username>:<password -X GET 
+curl -k -u <username>:<password> -X GET 
 https://<ip LB>/mgmt/tm/ltm/pool/~Common~Pool_<company>-WS/members/~Common~<WSName>:<port>/stats | jq '.'
 
 I use "jq" cmd to read format json, it is a linux command.
