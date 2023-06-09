@@ -1,0 +1,11 @@
+select count(*) from <table> where <field>  = 'batchId'; 
+select count(*) from <table> where <field>  = 'batchId'; 
+select count(*) from <table> where <field>  = 'batchId'; 
+select count(*) from <table> where <field>  = 'batchId'; 
+select count(*) from <table> where <field>  = 'batchId'; 
+select count(*) from <table> where <field>  = 'batchId'; 
+select count(*) from <table> where <field>  = 'batchId'; 
+select count(*) from <table> where <field>  = 'batchId'; 
+select count(*) from <table> where <field>  = 'batchId'; 
+select count(*) from <table> where <field>  = 'batchId'; 
+select count(*) from <table> where <field>  = 'batchId'; 

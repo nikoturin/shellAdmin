@@ -1,0 +1,13 @@
+{
+    "ENV-NP":[{"account":"xxxxxxxxxxxx","region": ["us-west-2"]},
+           {"account":"xxxxxxxxxxxx","region": ["us-west-2"]},
+           {"account":"xxxxxxxxxxxx","region": ["us-west-2"]},
+           {"account":"xxxxxxxxxxxx","region": ["us-west-2"]}
+        ],
+    "ENV-SP":[{"account": "xxxxxxxxxxx","region": ["us-east-1", "us-west-2","eu-central-1","eu-west-1"]},
+           {"account": "xxxxxxxxxxx","region": ["us-east-1", "us-west-2","eu-central-1","eu-west-1"]},
+           {"account": "xxxxxxxxxxx","region": ["us-east-1", "us-west-2","eu-central-1","eu-west-1"]},
+           {"account": "xxxxxxxxxxx","region": ["us-east-1", "us-west-2","eu-central-1","eu-west-1"]},
+           {"account": "xxxxxxxxxxx","region": ["us-east-1", "us-west-2","eu-central-1","eu-west-1"]}
+    	]
+}
