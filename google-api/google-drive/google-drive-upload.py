@@ -32,6 +32,6 @@ def subir_archivo(ruta_archivo,id_folder):
     archivo.Upload()
 
 if __name__ == "__main__":
-    ruta_archivo = '/home/runner/work/starter/tmp-mobile/HelloWorld-V3.txt'
+    ruta_archivo = '/home/runner/work/tmp-mobile/tmp-mobile/app/build/outputs/apk/debug/app-debug.apk'
     id_folder = '1c_zdW-kBL7DvFuGgJGM9P6Nbgka5tBfx'
     subir_archivo(ruta_archivo,id_folder)
