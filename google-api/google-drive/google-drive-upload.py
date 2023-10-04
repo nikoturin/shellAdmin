@@ -2,6 +2,7 @@
 from pydrive2.auth import GoogleAuth
 from pydrive2.drive import GoogleDrive
 from pydrive2.files import FileNotUploadedError
+import sys
 
 directorio_credenciales = 'credentials_module.json'
 
@@ -32,6 +33,7 @@ def subir_archivo(ruta_archivo,id_folder):
     archivo.Upload()
 
 if __name__ == "__main__":
-    ruta_archivo = '/home/runner/work/tmp-mobile/tmp-mobile/app/build/outputs/apk/debug/app-debug.apk'
+    #ruta_archivo = '/home/runner/work/tmp-mobile/tmp-mobile/app/build/outputs/apk/debug/app-debug.apk'
+    ruta_archivo = "'" + sys.argv[1] + "'"
     id_folder = '1c_zdW-kBL7DvFuGgJGM9P6Nbgka5tBfx'
     subir_archivo(ruta_archivo,id_folder)
